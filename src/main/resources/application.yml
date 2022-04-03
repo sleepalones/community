@@ -16,6 +16,17 @@ spring:
       maximum-pool-size: 15
       minimum-idle: 5
       idle-timeout: 30000
+  mail:
+    host: smtp.sina.com
+    port: 465
+    username: bamboowym@sina.com
+    password: 8d4759ffecab8de4
+    protocol: smtps
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
@@ -24,6 +35,7 @@ mybatis-plus:
     use-generated-keys: true
     map-underscore-to-camel-case: true
 
+# 日志配置  8d4759ffecab8de4
 logging:
   level:
     com.brotherming.community: debug

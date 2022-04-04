@@ -4,8 +4,11 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.brotherming.community.dao.LoginTicketMapper;
 import com.brotherming.community.dao.UserMapper;
+import com.brotherming.community.entity.LoginTicket;
 import com.brotherming.community.entity.User;
 import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityConstant;
@@ -35,6 +38,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     private UserMapper userMapper;
+
+    @Resource
+    private LoginTicketMapper loginTicketMapper;
 
     @Resource
     private MailClient mailClient;
@@ -111,5 +117,51 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }else {
             return CommunityConstant.ACTIVATION_FAIL;
         }
+    }
+
+    @Override
+    public Map<String, Object> login(String username, String password, int expiredSeconds) {
+        Map<String, Object> map = new HashMap<>();
+        //处理空值
+        if (StrUtil.isBlank(username)) {
+            map.put("usernameMsg","账号不能为空!");
+            return map;
+        }
+        if (StrUtil.isBlank(password)) {
+            map.put("passwordMsg","密码不能为空!");
+            return map;
+        }
+        //验证账号
+        User user = new LambdaQueryChainWrapper<>(userMapper).eq(User::getUsername,username).one();
+        if (ObjectUtil.isEmpty(user)) {
+            map.put("usernameMsg","该账号不存在!");
+            return map;
+        }
+        //验证状态
+        if (user.getStatus() == 0) {
+            map.put("usernameMsg","该账号未激活!");
+            return map;
+        }
+        //验证密码
+        password = CommunityUtil.md5(password + user.getSalt());
+        if (!user.getPassword().equals(password)) {
+            map.put("passwordMsg","密码不正确!");
+            return map;
+        }
+        //生成登录凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+        loginTicket.setStatus(0);
+        loginTicket.setExpired(DateUtil.toLocalDateTime(new Date(System.currentTimeMillis() + expiredSeconds * 1000L)));
+        loginTicketMapper.insert(loginTicket);
+        map.put("ticket",loginTicket.getTicket());
+        return map;
+    }
+
+    @Override
+    public void logout(String ticket) {
+        new LambdaUpdateChainWrapper<>(loginTicketMapper)
+                .eq(LoginTicket::getTicket,ticket).set(LoginTicket::getStatus,1).update();
     }
 }

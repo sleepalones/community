@@ -1,9 +1,13 @@
 package com.brotherming.community.controller;
 
+import cn.hutool.captcha.CaptchaUtil;
+import cn.hutool.captcha.CircleCaptcha;
 import cn.hutool.core.collection.CollUtil;
 import com.brotherming.community.entity.User;
 import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityConstant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,10 +15,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.Map;
 
 @Controller
 public class LoginController {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
     @Resource
     private UserService userService;
@@ -59,5 +68,17 @@ public class LoginController {
             model.addAttribute("target","/index");
         }
         return "/site/operate-result";
+    }
+
+    @GetMapping("/captcha")
+    public void captcha(HttpServletResponse response, HttpSession session) {
+        CircleCaptcha circleCaptcha = CaptchaUtil.createCircleCaptcha(100, 40,4,4);
+        session.setAttribute("captcha",circleCaptcha.getCode());
+        response.setContentType("image/png");
+        try {
+            circleCaptcha.write(response.getOutputStream());
+        } catch (IOException e) {
+            logger.error("响应验证码失败:" + e.getMessage());
+        }
     }
 }

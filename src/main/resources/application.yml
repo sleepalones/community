@@ -39,3 +39,8 @@ mybatis-plus:
 logging:
   level:
     com.brotherming.community: debug
+
+# 自定义配置
+community:
+  path:
+    domain: http://localhost:8080

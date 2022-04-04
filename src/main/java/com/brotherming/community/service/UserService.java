@@ -1,7 +1,9 @@
 package com.brotherming.community.service;
 
-import com.brotherming.community.entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.brotherming.community.entity.User;
+
+import java.util.Map;
 
 /**
  * <p>
@@ -13,4 +15,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface UserService extends IService<User> {
 
+    Map<String, Object> register(User user);
+
+    int activation(int userId, String code);
 }

@@ -36,6 +36,7 @@ public class HomeController {
         LambdaQueryWrapper<DiscussPost> wrapper = new LambdaQueryWrapper<>();
         // 查询没有被拉黑的帖子
         wrapper.ne(DiscussPost::getStatus,2);
+        wrapper.orderByDesc(DiscussPost::getCreateTime);
         Page<DiscussPost> discussPostPage = discussPostService.page(page,wrapper);
         List<Map<String,Object>> discussPosts = new ArrayList<>();
         if (CollUtil.isNotEmpty(discussPostPage.getRecords())) {

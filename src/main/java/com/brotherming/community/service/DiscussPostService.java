@@ -14,4 +14,5 @@ import com.brotherming.community.entity.DiscussPost;
 public interface DiscussPostService extends IService<DiscussPost> {
 
 
+    void addDiscussPost(DiscussPost post);
 }

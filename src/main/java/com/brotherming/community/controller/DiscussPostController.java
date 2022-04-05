@@ -6,12 +6,12 @@ import cn.hutool.core.util.ObjectUtil;
 import com.brotherming.community.entity.DiscussPost;
 import com.brotherming.community.entity.User;
 import com.brotherming.community.service.DiscussPostService;
+import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -24,12 +24,15 @@ import java.util.Date;
  * @author brotherming
  * @since 2022-04-02
  */
-@RestController
+@Controller
 @RequestMapping("/discussPost")
 public class DiscussPostController {
 
     @Resource
     private DiscussPostService discussPostService;
+
+    @Resource
+    private UserService userService;
 
     @Resource
     private HostHolder hostHolder;
@@ -50,5 +53,13 @@ public class DiscussPostController {
         return CommunityUtil.getJSONString(0,"发布成功!");
     }
 
+    @GetMapping("/detail/{discussPostId}")
+    public String getDiscussPost(Model model, @PathVariable("discussPostId") int discussPostId){
+        DiscussPost post = discussPostService.getById(discussPostId);
+        model.addAttribute("post",post);
+        User user = userService.getById(post.getUserId());
+        model.addAttribute("user",user);
+        return "/site/discuss-detail";
+    }
 }
 

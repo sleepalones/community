@@ -6,6 +6,7 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.brotherming.community.annotation.LoginRequired;
 import com.brotherming.community.entity.User;
 import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityUtil;
@@ -54,11 +55,13 @@ public class UserController {
     @Resource
     private HostHolder hostHolder;
 
+    @LoginRequired
     @GetMapping("/setting")
     public String getSettingPage() {
         return "/site/setting";
     }
 
+    @LoginRequired
     @PostMapping("/upload")
     public String uploadHeader(MultipartFile headerImage, Model model) {
         if (ObjectUtil.isEmpty(headerImage)) {

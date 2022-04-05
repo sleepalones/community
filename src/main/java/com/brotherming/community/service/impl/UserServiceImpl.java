@@ -164,4 +164,37 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         new LambdaUpdateChainWrapper<>(loginTicketMapper)
                 .eq(LoginTicket::getTicket,ticket).set(LoginTicket::getStatus,1).update();
     }
+
+    @Override
+    public Map<String, Object> updatePassword(String oldpassword, String newpassword, String confirmpassword, User user) {
+        Map<String,Object> map = new HashMap<>();
+        //处理空值
+        if (StrUtil.isBlank(oldpassword)) {
+            map.put("old","原密码不能为空!");
+            return map;
+        }
+        if (StrUtil.isBlank(newpassword)) {
+            map.put("new","新密码不能为空!");
+            return map;
+        }
+        if (StrUtil.isBlank(oldpassword)) {
+            map.put("confirm","确认密码不能为空!");
+            return map;
+        }
+        //比较新密码和确认密码
+        if (!newpassword.equals(confirmpassword)) {
+            map.put("confirm","两次输入结果不同!");
+            return map;
+        }
+        String oldMd5 = CommunityUtil.md5(oldpassword + user.getSalt());
+        if (!user.getPassword().equals(oldMd5)) {
+            map.put("old","原密码不正确");
+            return map;
+        }
+        user.setSalt(CommunityUtil.generateUUID().substring(0,5));
+        String newMd5 = CommunityUtil.md5(newpassword + user.getSalt());
+        user.setPassword(newMd5);
+        userMapper.updateById(user);
+        return map;
+    }
 }

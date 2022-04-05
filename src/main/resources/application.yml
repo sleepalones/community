@@ -44,3 +44,4 @@ logging:
 community:
   path:
     domain: http://localhost:8080
+    upload: d:/dev-data/upload

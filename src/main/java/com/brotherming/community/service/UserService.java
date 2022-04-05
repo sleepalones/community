@@ -23,4 +23,6 @@ public interface UserService extends IService<User> {
 
     void logout(String ticket);
 
+    Map<String, Object> updatePassword(String oldpassword, String newpassword, String confirmpassword, User user);
+
 }

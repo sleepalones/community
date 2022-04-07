@@ -1,7 +1,7 @@
 package com.brotherming.community.service;
 
-import com.brotherming.community.entity.Comment;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.brotherming.community.entity.Comment;
 
 /**
  * <p>
@@ -12,5 +12,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2022-04-02
  */
 public interface CommentService extends IService<Comment> {
+
+    void addComment(Comment comment);
 
 }

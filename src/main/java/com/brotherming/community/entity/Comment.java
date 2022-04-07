@@ -27,10 +27,19 @@ public class Comment implements Serializable {
 
     private Integer userId;
 
+    /**
+     * 评论的目标类型
+     */
     private Integer entityType;
 
+    /**
+     * 评论目标类型的ID
+     */
     private Integer entityId;
 
+    /**
+     * 回复某个人，指定的ID
+     */
     private Integer targetId;
 
     private String content;

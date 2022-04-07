@@ -1,12 +1,19 @@
 package com.brotherming.community.controller;
 
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.brotherming.community.entity.Comment;
 import com.brotherming.community.entity.DiscussPost;
+import com.brotherming.community.entity.PageInfo;
 import com.brotherming.community.entity.User;
+import com.brotherming.community.service.CommentService;
 import com.brotherming.community.service.DiscussPostService;
 import com.brotherming.community.service.UserService;
+import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
 import org.springframework.stereotype.Controller;
@@ -14,7 +21,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import java.util.Date;
+import java.util.*;
 
 /**
  * <p>
@@ -33,6 +40,9 @@ public class DiscussPostController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private CommentService commentService;
 
     @Resource
     private HostHolder hostHolder;
@@ -54,11 +64,62 @@ public class DiscussPostController {
     }
 
     @GetMapping("/detail/{discussPostId}")
-    public String getDiscussPost(Model model, @PathVariable("discussPostId") int discussPostId){
+    public String getDiscussPost(Model model, @PathVariable("discussPostId") int discussPostId, PageInfo pageInfo){
         DiscussPost post = discussPostService.getById(discussPostId);
         model.addAttribute("post",post);
         User user = userService.getById(post.getUserId());
         model.addAttribute("user",user);
+
+        pageInfo.setPath("/discussPost/detail/" + discussPostId);
+        pageInfo.setRows(post.getCommentCount());
+
+        //分页查询评论列表，帖子地下的评论
+        Page<Comment> page = new Page<>(pageInfo.getCurrent(),pageInfo.getLimit());
+        LambdaQueryWrapper<Comment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(Comment::getStatus,0);
+        wrapper.eq(Comment::getEntityType, CommunityConstant.ENTITY_TYPE_POST)
+                .eq(Comment::getEntityId,post.getId())
+                .orderByAsc(Comment::getCreateTime);
+        //评论列表
+        Page<Comment> commentPage = commentService.page(page,wrapper);
+        List<Map<String,Object>> commentVoList = new ArrayList<>();
+        if (CollUtil.isNotEmpty(commentPage.getRecords())) {
+            for (Comment comment : commentPage.getRecords()) {
+                Map<String,Object> commentVo = new HashMap<>();
+                //评论
+                commentVo.put("comment",comment);
+                //作者
+                commentVo.put("user",userService.getById(comment.getUserId()));
+
+                //回复列表
+                List<Comment> replyList = commentService.lambdaQuery()
+                        .eq(Comment::getEntityType, CommunityConstant.ENTITY_TYPE_COMMENT)
+                        .eq(Comment::getEntityId, comment.getId()).list();
+
+                List<Map<String,Object>> replyVoList = new ArrayList<>();
+                if (CollUtil.isNotEmpty(replyList)) {
+                    for (Comment reply : replyList) {
+                        Map<String,Object> replyVo = new HashMap<>();
+                        //回复
+                        replyVo.put("reply",reply);
+                        //作者
+                        replyVo.put("user",userService.getById(reply.getUserId()));
+                        User target = reply.getTargetId() == 0 ? null : userService.getById(reply.getTargetId());
+                        replyVo.put("target",target);
+                        replyVoList.add(replyVo);
+                    }
+                }
+                commentVo.put("replys",replyVoList);
+
+                //回复数量
+                Integer replyCount = commentService.lambdaQuery().eq(Comment::getEntityType, CommunityConstant.ENTITY_TYPE_COMMENT)
+                        .eq(Comment::getEntityId, comment.getId()).count();
+                commentVo.put("replyCount",replyCount);
+
+                commentVoList.add(commentVo);
+            }
+        }
+        model.addAttribute("comments",commentVoList);
         return "/site/discuss-detail";
     }
 }

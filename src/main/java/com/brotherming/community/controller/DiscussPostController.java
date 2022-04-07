@@ -83,6 +83,7 @@ public class DiscussPostController {
         //评论列表
         Page<Comment> commentPage = commentService.page(page,wrapper);
         List<Map<String,Object>> commentVoList = new ArrayList<>();
+        //查询到评论列表后再将每条评论的作者查询出来封装到map集合中
         if (CollUtil.isNotEmpty(commentPage.getRecords())) {
             for (Comment comment : commentPage.getRecords()) {
                 Map<String,Object> commentVo = new HashMap<>();
@@ -91,12 +92,13 @@ public class DiscussPostController {
                 //作者
                 commentVo.put("user",userService.getById(comment.getUserId()));
 
-                //回复列表
+                //回复列表，查询在这条评论下有没有评论，和回复
                 List<Comment> replyList = commentService.lambdaQuery()
                         .eq(Comment::getEntityType, CommunityConstant.ENTITY_TYPE_COMMENT)
                         .eq(Comment::getEntityId, comment.getId()).list();
 
                 List<Map<String,Object>> replyVoList = new ArrayList<>();
+                //如果还有回复就将回复的作者信息和该回复封装到map中
                 if (CollUtil.isNotEmpty(replyList)) {
                     for (Comment reply : replyList) {
                         Map<String,Object> replyVo = new HashMap<>();

@@ -1,7 +1,10 @@
 package com.brotherming.community.service;
 
-import com.brotherming.community.entity.Message;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.brotherming.community.entity.Message;
+import com.brotherming.community.entity.PageInfo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -13,4 +16,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface MessageService extends IService<Message> {
 
+    List<Message> selectConversations(int userId, PageInfo pageInfo);
+
+    int selectConversationCount(int userId);
 }

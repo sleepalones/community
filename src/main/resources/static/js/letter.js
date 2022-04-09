@@ -5,10 +5,23 @@ $(function(){
 
 function send_letter() {
 	$("#sendModal").modal("hide");
-	$("#hintModal").modal("show");
-	setTimeout(function(){
-		$("#hintModal").modal("hide");
-	}, 2000);
+
+	const toName = $("#recipient-name").val();
+	const content = $("#message-text").val();
+
+	$.post(
+		CONTEXT_PATH + "/message/letter/send",
+		{"toName":toName,"content":content},
+		function (data){
+			data = $.parseJSON(data);
+			$("#hintBody").text(data.msg)
+			$("#hintModal").modal("show");
+			setTimeout(function(){
+				$("#hintModal").modal("hide");
+				location.reload();
+			}, 2000);
+		}
+	)
 }
 
 function delete_msg() {

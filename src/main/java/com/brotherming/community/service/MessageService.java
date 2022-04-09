@@ -19,4 +19,6 @@ public interface MessageService extends IService<Message> {
     List<Message> selectConversations(int userId, PageInfo pageInfo);
 
     int selectConversationCount(int userId);
+
+    int addMessage(Message message);
 }

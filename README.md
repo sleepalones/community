@@ -85,5 +85,8 @@
 - 统一处理异常
   - 在 templates 目录下 新建 error 文件夹，里边存放发生错误页面，发生错误SpringBoot能自动识别，并自动跳转到相应的页面
   - ControllerAdvice 注解，能够处理所有 Controller 下的异常
+- 统一记录日志
+  - AOP：面向切面编程
+  - 利用AOP针对业务组件进行日志记录
 
 

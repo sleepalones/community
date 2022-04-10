@@ -8,6 +8,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.brotherming.community.annotation.LoginRequired;
 import com.brotherming.community.entity.User;
+import com.brotherming.community.service.LikeService;
 import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
@@ -54,6 +55,9 @@ public class UserController {
 
     @Resource
     private HostHolder hostHolder;
+
+    @Resource
+    private LikeService likeService;
 
     @LoginRequired
     @GetMapping("/setting")
@@ -123,6 +127,20 @@ public class UserController {
             model.addAttribute("confirmpassword",map.get("confirm"));
             return "/site/setting";
         }
+    }
+
+    @GetMapping("/profile/{userId}")
+    public String getProfilePage(@PathVariable("userId") int userId, Model model) {
+        User user = userService.getById(userId);
+        if (ObjectUtil.isEmpty(user)) {
+            throw new RuntimeException("该用户不存咋!");
+        }
+        //用户
+        model.addAttribute("user",user);
+        //点赞数量
+        int likeCount = likeService.findUserLikeCount(userId);
+        model.addAttribute("likeCount",likeCount);
+        return "/site/profile";
     }
 }
 

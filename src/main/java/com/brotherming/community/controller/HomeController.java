@@ -7,7 +7,9 @@ import com.brotherming.community.entity.DiscussPost;
 import com.brotherming.community.entity.PageInfo;
 import com.brotherming.community.entity.User;
 import com.brotherming.community.service.DiscussPostService;
+import com.brotherming.community.service.LikeService;
 import com.brotherming.community.service.UserService;
+import com.brotherming.community.util.CommunityConstant;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +32,9 @@ public class HomeController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private LikeService likeService;
+
     @GetMapping("/index")
     public String getIndexPage(Model model, PageInfo pageInfo){
         Page<DiscussPost> page = new Page<>(pageInfo.getCurrent(),pageInfo.getLimit());
@@ -45,6 +50,7 @@ public class HomeController {
                 map.put("post",dis);
                 User user = userService.getById(dis.getUserId());
                 map.put("user",user);
+                map.put("likeCount", likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST,dis.getId()));
                 discussPosts.add(map);
             });
         }

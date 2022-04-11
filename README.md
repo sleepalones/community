@@ -3,7 +3,21 @@
 - 社区首页主要是提供帖子查看、分页等功能
 - 我们需要将没有被拉黑的帖子呈现给用户
 - 没有登录的情况下也可以查看
-- 留个伏笔：redis优化，后面补充
+- 重构登录模块：
+  - 使用Redis存储验证码
+    - 验证码需要频繁的访问与刷新，对性能要求较高
+    - 验证码不需永久保存，通常在很短的时间后就会失效
+    - 分布式部署时，存在Session共享的问题
+  - 使用Redis存储登录凭证
+    - 处理每次请求时，都要查询用户的登录凭证，访问的频率非常高
+    - 每次请求都从redis里查询登录凭证，不再从session里边查，解决了分布式session问题
+  - 使用Redis缓存用户信息
+    - 处理每次请求时，都要根据凭证查询用户信息，访问的效率非常高。
+    - 查询用户信息之前，先在redis里面查找，如果没有则再访问mysql
+    - 如果修改了用户信息，则将redis缓存的数据删除
+  - 使用 LocalTime 序列化时踩坑，在文档记录一下方便查阅。解决方法
+    - 添加依赖包`jackson-datatype-jsr310`
+    - 实体字段上添加：`@JsonDeserialize(using = LocalDateTimeDeserializer.class)` `@JsonSerialize(using = LocalDateTimeSerializer.class)`
 
 ## 开发社区登录模块
 - 开启新浪邮箱的 POP3/SMTP 服务，通过 JavaMailSender 可以实现邮件的发送功能。

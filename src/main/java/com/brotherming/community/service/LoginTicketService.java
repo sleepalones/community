@@ -1,7 +1,7 @@
 package com.brotherming.community.service;
 
-import com.brotherming.community.entity.LoginTicket;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.brotherming.community.entity.LoginTicket;
 
 /**
  * <p>
@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author brotherming
  * @since 2022-04-02
  */
+@Deprecated
 public interface LoginTicketService extends IService<LoginTicket> {
 
 }

@@ -65,7 +65,7 @@ public class MessageController {
                 map.put("unreadCount",count);
                 //如果当前用户是发送方，就返回接收方的用户信息，否则反之
                 int targetId = Objects.equals(user.getId(), message.getFromId()) ? message.getToId() : message.getFromId();
-                map.put("target",userService.getById(targetId));
+                map.put("target",userService.findUserById(targetId));
                 conversations.add(map);
             }
         }
@@ -101,7 +101,7 @@ public class MessageController {
             for (Message message : letterList) {
                 Map<String,Object> map = new HashMap<>();
                 map.put("letter",message);
-                map.put("fromUser",userService.getById(message.getFromId()));
+                map.put("fromUser",userService.findUserById(message.getFromId()));
                 letters.add(map);
             }
         }
@@ -122,9 +122,9 @@ public class MessageController {
         int id0 = Integer.parseInt(ids[0]);
         int id1 = Integer.parseInt(ids[1]);
         if (hostHolder.getUser().getId() == id0) {
-            return userService.getById(id1);
+            return userService.findUserById(id1);
         }else {
-            return userService.getById(id0);
+            return userService.findUserById(id0);
         }
     }
 

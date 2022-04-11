@@ -4,9 +4,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.conditions.query.LambdaQueryChainWrapper;
-import com.baomidou.mybatisplus.extension.conditions.update.LambdaUpdateChainWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.brotherming.community.dao.LoginTicketMapper;
 import com.brotherming.community.dao.UserMapper;
 import com.brotherming.community.entity.LoginTicket;
 import com.brotherming.community.entity.User;
@@ -14,7 +12,9 @@ import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.MailClient;
+import com.brotherming.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>
@@ -39,8 +40,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     @Resource
     private UserMapper userMapper;
 
+    /*@Resource
+    private LoginTicketMapper loginTicketMapper;*/
     @Resource
-    private LoginTicketMapper loginTicketMapper;
+    private RedisTemplate<String,Object> redisTemplate;
 
     @Resource
     private MailClient mailClient;
@@ -113,6 +116,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         } else if (user.getActivationCode().equals(code)) {
             user.setStatus(1);
             userMapper.updateById(user);
+            clearCache(userId);
             return CommunityConstant.ACTIVATION_SUCCESS;
         }else {
             return CommunityConstant.ACTIVATION_FAIL;
@@ -154,15 +158,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         loginTicket.setTicket(CommunityUtil.generateUUID());
         loginTicket.setStatus(0);
         loginTicket.setExpired(DateUtil.toLocalDateTime(new Date(System.currentTimeMillis() + expiredSeconds * 1000L)));
-        loginTicketMapper.insert(loginTicket);
+        //loginTicketMapper.insert(loginTicket);
+
+        String ticketKey = RedisKeyUtil.getTicketKey(loginTicket.getTicket());
+        redisTemplate.opsForValue().set(ticketKey,loginTicket);
+
         map.put("ticket",loginTicket.getTicket());
         return map;
     }
 
     @Override
     public void logout(String ticket) {
-        new LambdaUpdateChainWrapper<>(loginTicketMapper)
-                .eq(LoginTicket::getTicket,ticket).set(LoginTicket::getStatus,1).update();
+        /*new LambdaUpdateChainWrapper<>(loginTicketMapper)
+                .eq(LoginTicket::getTicket,ticket).set(LoginTicket::getStatus,1).update();*/
+        String ticketKey = RedisKeyUtil.getTicketKey(ticket);
+        LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
+        loginTicket.setStatus(1);
+        redisTemplate.opsForValue().set(ticketKey,loginTicket);
     }
 
     @Override
@@ -195,6 +207,36 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String newMd5 = CommunityUtil.md5(newpassword + user.getSalt());
         user.setPassword(newMd5);
         userMapper.updateById(user);
+        clearCache(user.getId());
         return map;
+    }
+
+    @Override
+    public User getCache(int userId) {
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        return (User) redisTemplate.opsForValue().get(userKey);
+    }
+
+    @Override
+    public User initCache(int userId) {
+        User user = userMapper.selectById(userId);
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.opsForValue().set(userKey,user,3600, TimeUnit.SECONDS);
+        return user;
+    }
+
+    @Override
+    public void clearCache(int userId) {
+        String userKey = RedisKeyUtil.getUserKey(userId);
+        redisTemplate.delete(userKey);
+    }
+
+    @Override
+    public User findUserById(int userId) {
+        User user = getCache(userId);
+        if (user == null) {
+            user = initCache(userId);
+        }
+        return user;
     }
 }

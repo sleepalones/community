@@ -73,7 +73,7 @@ public class DiscussPostController {
         DiscussPost post = discussPostService.getById(discussPostId);
         model.addAttribute("post",post);
         //作者
-        User user = userService.getById(post.getUserId());
+        User user = userService.findUserById(Integer.parseInt(post.getUserId()));
         model.addAttribute("user",user);
         //点赞数量-帖子
         long likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST, discussPostId);
@@ -103,7 +103,7 @@ public class DiscussPostController {
                 //评论
                 commentVo.put("comment",comment);
                 //作者
-                commentVo.put("user",userService.getById(comment.getUserId()));
+                commentVo.put("user",userService.findUserById(comment.getUserId()));
 
                 //点赞数量
                 likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_COMMENT, comment.getId());
@@ -126,8 +126,8 @@ public class DiscussPostController {
                         //回复
                         replyVo.put("reply",reply);
                         //作者
-                        replyVo.put("user",userService.getById(reply.getUserId()));
-                        User target = reply.getTargetId() == 0 ? null : userService.getById(reply.getTargetId());
+                        replyVo.put("user",userService.findUserById(reply.getUserId()));
+                        User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getTargetId());
                         replyVo.put("target",target);
                         //点赞数量
                         likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_COMMENT, reply.getId());

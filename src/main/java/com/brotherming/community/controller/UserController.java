@@ -99,6 +99,7 @@ public class UserController {
         String headerUrl = domain + contextPath + "/user/header/" + fileName;
         user.setHeaderUrl(headerUrl);
         userService.updateById(user);
+        userService.clearCache(user.getId());
         return "redirect:/index";
     }
 
@@ -136,7 +137,7 @@ public class UserController {
 
     @GetMapping("/profile/{userId}")
     public String getProfilePage(@PathVariable("userId") int userId, Model model) {
-        User user = userService.getById(userId);
+        User user = userService.findUserById(userId);
         if (ObjectUtil.isEmpty(user)) {
             throw new RuntimeException("该用户不存咋!");
         }

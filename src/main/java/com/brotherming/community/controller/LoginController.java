@@ -7,9 +7,12 @@ import cn.hutool.core.util.StrUtil;
 import com.brotherming.community.entity.User;
 import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityConstant;
+import com.brotherming.community.util.CommunityUtil;
+import com.brotherming.community.util.RedisKeyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -20,9 +23,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import javax.annotation.Resource;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Controller
 public class LoginController {
@@ -31,6 +34,9 @@ public class LoginController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
 
     @Value("${server.servlet.context-path}")
     private String contextPath;
@@ -78,9 +84,20 @@ public class LoginController {
     }
 
     @GetMapping("/captcha")
-    public void captcha(HttpServletResponse response, HttpSession session) {
+    public void captcha(HttpServletResponse response/*, HttpSession session*/) {
         CircleCaptcha circleCaptcha = CaptchaUtil.createCircleCaptcha(100, 40,4,4);
-        session.setAttribute("captcha",circleCaptcha.getCode());
+        //session.setAttribute("captcha",circleCaptcha.getCode());
+
+        //验证码的归属
+        String captchaOwner = CommunityUtil.generateUUID();
+        Cookie cookie = new Cookie("captchaOwner",captchaOwner);
+        cookie.setMaxAge(60);
+        cookie.setPath(contextPath);
+        response.addCookie(cookie);
+        //将验证码存入Redis
+        String captchaKey = RedisKeyUtil.getCaptchaKey(captchaOwner);
+        redisTemplate.opsForValue().set(captchaKey,circleCaptcha.getCode(),60, TimeUnit.SECONDS);
+
         response.setContentType("image/png");
         try {
             circleCaptcha.write(response.getOutputStream());
@@ -90,10 +107,18 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String login(Model model, HttpSession session, HttpServletResponse response,
-                        String username, String password, String code, boolean rememberme) {
+    public String login(Model model, /*HttpSession session,*/ HttpServletResponse response,
+                        String username, String password, String code, boolean rememberme,
+                        @CookieValue("captchaOwner") String captchaOwner) {
         // 检查验证码
-        String captcha = (String) session.getAttribute("captcha");
+        //String captcha = (String) session.getAttribute("captcha");
+
+        String captcha = null;
+        if (StrUtil.isNotBlank(captchaOwner)) {
+            String captchaKey = RedisKeyUtil.getCaptchaKey(captchaOwner);
+            captcha = (String) redisTemplate.opsForValue().get(captchaKey);
+        }
+
         if (StrUtil.isBlank(captcha) || StrUtil.isBlank(code) || !captcha.equalsIgnoreCase(code)) {
             model.addAttribute("codeMsg","验证码不正确!");
             return "/site/login";

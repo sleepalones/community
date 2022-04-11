@@ -5,10 +5,11 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.brotherming.community.entity.LoginTicket;
 import com.brotherming.community.entity.User;
-import com.brotherming.community.service.LoginTicketService;
 import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CookieUtil;
 import com.brotherming.community.util.HostHolder;
+import com.brotherming.community.util.RedisKeyUtil;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -21,8 +22,11 @@ import java.util.Date;
 @Component
 public class LoginTicketInterceptor implements HandlerInterceptor {
 
+    /*@Resource
+    private LoginTicketService loginTicketService;*/
+
     @Resource
-    private LoginTicketService loginTicketService;
+    private RedisTemplate<String,Object> redisTemplate;
 
     @Resource
     private UserService userService;
@@ -36,7 +40,9 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
         String ticket = CookieUtil.getValue(request, "ticket");
         if (StrUtil.isNotBlank(ticket)) {
             //查询凭证
-            LoginTicket loginTicket = loginTicketService.lambdaQuery().eq(LoginTicket::getTicket, ticket).one();
+            //LoginTicket loginTicket = loginTicketService.lambdaQuery().eq(LoginTicket::getTicket, ticket).one();
+            String ticketKey = RedisKeyUtil.getTicketKey(ticket);
+            LoginTicket loginTicket = (LoginTicket) redisTemplate.opsForValue().get(ticketKey);
             //检查凭证是否有效
             if (ObjectUtil.isNotEmpty(loginTicket) && loginTicket.getStatus() == 0 &&
                     loginTicket.getExpired().isAfter(DateUtil.toLocalDateTime(new Date()))){

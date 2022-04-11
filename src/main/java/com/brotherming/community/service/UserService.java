@@ -25,4 +25,15 @@ public interface UserService extends IService<User> {
 
     Map<String, Object> updatePassword(String oldpassword, String newpassword, String confirmpassword, User user);
 
+    //优先从缓存中取值
+    User getCache(int userId);
+
+    //取不到时初始化缓存数据
+    User initCache(int userId);
+
+    //数据变更时清除缓存数据
+    void clearCache(int userId);
+
+    User findUserById(int userId);
+
 }

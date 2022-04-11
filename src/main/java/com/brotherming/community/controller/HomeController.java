@@ -48,7 +48,7 @@ public class HomeController {
             discussPostPage.getRecords().forEach(dis -> {
                 Map<String,Object> map = new HashMap<>();
                 map.put("post",dis);
-                User user = userService.getById(dis.getUserId());
+                User user = userService.findUserById(Integer.parseInt(dis.getUserId()));
                 map.put("user",user);
                 map.put("likeCount", likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST,dis.getId()));
                 discussPosts.add(map);

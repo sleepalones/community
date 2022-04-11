@@ -1,7 +1,7 @@
 package com.brotherming.community.dao;
 
-import com.brotherming.community.entity.LoginTicket;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.brotherming.community.entity.LoginTicket;
 
 /**
  * <p>
@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author brotherming
  * @since 2022-04-02
  */
+@Deprecated
 public interface LoginTicketMapper extends BaseMapper<LoginTicket> {
 
 }

@@ -97,7 +97,7 @@ public class FollowServiceImpl implements FollowService {
         List<Map<String,Object>> list = new ArrayList<>();
         for (Object targetId : targetIds) {
             Map<String,Object> map = new HashMap<>();
-            User user = userService.getById((Integer) targetId);
+            User user = userService.findUserById((Integer) targetId);
             map.put("user",user);
             Double score = redisTemplate.opsForZSet().score(key, targetId);
             map.put("followTime",new Date(score.longValue()));

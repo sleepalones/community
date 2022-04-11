@@ -49,7 +49,7 @@ public class FollowController {
 
     @GetMapping("/followees/{userId}")
     public String getFollowees(@PathVariable("userId") int userId, PageInfo pageInfo, Model model) {
-        User user = userService.getById(userId);
+        User user = userService.findUserById(userId);
         if (user == null) {
             throw new RuntimeException("该用户不存在!");
         }
@@ -70,7 +70,7 @@ public class FollowController {
 
     @GetMapping("/followers/{userId}")
     public String getFollowers(@PathVariable("userId") int userId, PageInfo pageInfo, Model model) {
-        User user = userService.getById(userId);
+        User user = userService.findUserById(userId);
         if (user == null) {
             throw new RuntimeException("该用户不存在!");
         }

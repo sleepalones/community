@@ -1,5 +1,6 @@
 package com.brotherming.community.controller;
 
+import com.brotherming.community.annotation.LoginRequired;
 import com.brotherming.community.entity.User;
 import com.brotherming.community.service.LikeService;
 import com.brotherming.community.util.CommunityUtil;
@@ -20,7 +21,8 @@ public class LikeController {
     @Resource
     private HostHolder hostHolder;
 
-    @PostMapping("like")
+    @LoginRequired
+    @PostMapping("/like")
     public String like(int entityType, int entityId, int entityUserId){
         User user = hostHolder.getUser();
         //点赞

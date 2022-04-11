@@ -8,8 +8,10 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.brotherming.community.annotation.LoginRequired;
 import com.brotherming.community.entity.User;
+import com.brotherming.community.service.FollowService;
 import com.brotherming.community.service.LikeService;
 import com.brotherming.community.service.UserService;
+import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
 import org.slf4j.Logger;
@@ -58,6 +60,9 @@ public class UserController {
 
     @Resource
     private LikeService likeService;
+
+    @Resource
+    private FollowService followService;
 
     @LoginRequired
     @GetMapping("/setting")
@@ -140,6 +145,21 @@ public class UserController {
         //点赞数量
         int likeCount = likeService.findUserLikeCount(userId);
         model.addAttribute("likeCount",likeCount);
+
+        //关注数量
+        long followeeCount = followService.findFolloweeCount(userId, CommunityConstant.ENTITY_TYPE_USER);
+        model.addAttribute("followeeCount",followeeCount);
+
+        //粉丝数量
+        long followerCount = followService.findFollowerCount(CommunityConstant.ENTITY_TYPE_USER, userId);
+        model.addAttribute("followerCount",followerCount);
+
+        //是否关注
+        boolean hasFollowed = false;
+        if (hostHolder.getUser() != null) {
+            hasFollowed = followService.hasFollowed(hostHolder.getUser().getId(),CommunityConstant.ENTITY_TYPE_USER,userId);
+        }
+        model.addAttribute("hasFollowed",hasFollowed);
         return "/site/profile";
     }
 }

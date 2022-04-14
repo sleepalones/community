@@ -1,8 +1,10 @@
 package com.brotherming.community.controller;
 
 import cn.hutool.core.collection.CollUtil;
+import com.brotherming.community.entity.Event;
 import com.brotherming.community.entity.PageInfo;
 import com.brotherming.community.entity.User;
+import com.brotherming.community.event.EventProducer;
 import com.brotherming.community.service.FollowService;
 import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityConstant;
@@ -31,11 +33,24 @@ public class FollowController {
     @Resource
     private UserService userService;
 
+    @Resource
+    private EventProducer eventProducer;
+
     @PostMapping("/follow")
     @ResponseBody
     public String follow(int entityType, int entityId) {
         User user = hostHolder.getUser();
         followService.follow(user.getId(), entityType, entityId);
+
+        //触发关注事件
+        Event event = new Event()
+                .setTopic(CommunityConstant.TOPIC_FOLLOW)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(entityType)
+                .setEntityId(entityId)
+                .setEntityUserId(entityId);
+        eventProducer.fireEvent(event);
+
         return CommunityUtil.getJSONString(0,"已关注!");
     }
 

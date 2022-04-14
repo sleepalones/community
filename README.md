@@ -125,4 +125,34 @@
   - 根据key分页查询 redis 中 zset 的数据，显示到页面
   - 查询某人的关注状态
 
+## Kafka，构建TB级异步消息系统
+- kafka启动方式：
+  - bin\windows\zookeeper-server-start.bat config\zookeeper.properties
+  - bin\windows\kafka-server-start.bat config\server.properties
+  - 创建主题：
+    - kafka-topics.bat --create --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic test
+  - 查看主题：
+    - bin\windows\kafka-topics.bat --list --bootstrap-server localhost:9092
+  - 生产数据：
+    - kafka-console-producer.bat --broker-list localhost:9092 --topic test
+  - 消费数据：
+    - kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic test --from-beginning
+- 阻塞队列
+  - BlockingQueue
+    - 解决线程通信的问题
+    - 阻塞方法：put、take
+  - 生产者消费者模式
+    - 生产者：产生数据的线程
+    - 消费者：使用数据的线程
+  - 实现类：
+    - ArrayBlockingQueue
+    - LinkedBlockingQueue
+    - PriorityBlockingQueue、SynchronousQueue、DelayQueue等
+- 发送系统通知功能
+  - 系统通知类型可能有多种，需要定义一个通用的实体(Event)来封装不同的事件
+  - 构造事件生产者，事件消费者
+  - 触发消息的事件：
+    - 评论后，生成事件，发布通知
+    - 点赞后，生成事件，发布通知
+    - 关注后，生成事件，发布通知
 

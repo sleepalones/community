@@ -112,15 +112,15 @@
 							</div>
 						</div>
 					</div>
-				</div>						
-				
+				</div>
+
 				<!-- 私信列表 -->
 				<ul class="list-unstyled mt-4">
 					<li class="media pb-3 pt-3 mb-2" th:each="map:${letters}">
-						<a href="profile.html">
+						<a th:if="${map.fromUser.id!=loginUser.id}" th:href="@{|/user/profile/${map.fromUser.id}|}">
 							<img th:src="${map.fromUser.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" >
 						</a>
-						<div class="toast show d-lg-block" role="alert" aria-live="assertive" aria-atomic="true">
+						<div th:style="${map.fromUser.id==loginUser.id?'margin-left:75px;margin-bottom: 0px;':''}" class="toast show d-lg-block" role="alert" aria-live="assertive" aria-atomic="true">
 							<div class="toast-header">
 								<strong class="mr-auto" th:utext="${map.fromUser.username}">落基山脉下的闲人</strong>
 								<small th:text="${#temporals.format(map.letter.createTime,'yyyy-MM-dd HH:mm:ss')}">2019-04-25 15:49:32</small>
@@ -132,6 +132,9 @@
 								君不见, 黄河之水天上来, 奔流到海不复回!
 							</div>
 						</div>
+						<a th:if="${map.fromUser.id==loginUser.id}" style="margin-left: 20px;" th:href="@{|/user/profile/${map.fromUser.id}|}">
+							<img th:src="${map.fromUser.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" >
+						</a>
 					</li>
 				</ul>
 				<!-- 分页 -->

@@ -130,13 +130,15 @@
 						</a>
 						<div class="media-body">
 							<h6 class="mt-0 mb-3">
-								<a th:href="@{|/message/letter/detail/${map.conversation.conversationId}|}">
+								<!--<a th:href="@{|/message/letter/detail/${map.conversation.conversationId}|}">-->
 									<span class="text-success" th:utext="${map.target.username}">落基山脉下的闲人</span>
-								</a>
+								<!--</a>-->
 								<span class="float-right text-muted font-size-12" th:text="${#temporals.format(map.conversation.createTime,'yyyy-MM-dd HH:mm:ss')}">2019-04-28 14:13:25</span>
 							</h6>
 							<div>
-								<span th:utext="${map.conversation.content}">米粉车, 你来吧!</span>
+								<a th:href="@{|/message/letter/detail/${map.conversation.conversationId}|}">
+									<span th:utext="${map.conversation.content}">米粉车, 你来吧!</span>
+								</a>
 								<ul class="d-inline font-size-12 float-right">
 									<li class="d-inline ml-2"><a href="#" class="text-primary">共<i th:text="${map.letterCount}">5</i>条会话</a></li>
 								</ul>

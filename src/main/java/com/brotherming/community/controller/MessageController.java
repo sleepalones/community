@@ -95,7 +95,7 @@ public class MessageController {
         //根据 conversationId 查询所有会话
         wrapper.ne(Message::getStatus,2).ne(Message::getFromId,1)
                 .eq(Message::getConversationId,conversationId)
-                .orderByDesc(Message::getId);
+                .orderByAsc(Message::getCreateTime);
         List<Message> letterList = messageService.page(page, wrapper).getRecords();
         List<Map<String,Object>> letters = new ArrayList<>();
         if (CollUtil.isNotEmpty(letterList)) {

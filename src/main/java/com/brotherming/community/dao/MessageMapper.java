@@ -40,4 +40,14 @@ public interface MessageMapper extends BaseMapper<Message> {
             ") as m"
     })
     int selectConversationCount(int userId);
+
+    @Select({
+            "select id,from_id,to_id,conversation_id,content,status,create_time ",
+            "from message where id in ( ",
+                "select max(id) from message where ",
+                "status != 2 and from_id = 1 ",
+                "and to_id = #{userId} and conversation_id = #{topic} ",
+            ")"
+    })
+    Message selectLatestNotice(Integer userId, String topic);
 }

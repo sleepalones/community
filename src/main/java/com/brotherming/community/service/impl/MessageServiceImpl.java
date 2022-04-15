@@ -45,4 +45,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         message.setContent(sensitiveFilter.filter(message.getContent()));
         return messageMapper.insert(message);
     }
+
+    @Override
+    public Message findLatestNotice(Integer id, String topic) {
+        return messageMapper.selectLatestNotice(id,topic);
+    }
 }

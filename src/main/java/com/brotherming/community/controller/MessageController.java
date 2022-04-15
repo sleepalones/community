@@ -4,6 +4,8 @@ package com.brotherming.community.controller;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.http.HtmlUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.brotherming.community.entity.Message;
@@ -11,6 +13,7 @@ import com.brotherming.community.entity.PageInfo;
 import com.brotherming.community.entity.User;
 import com.brotherming.community.service.MessageService;
 import com.brotherming.community.service.UserService;
+import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
 import org.springframework.stereotype.Controller;
@@ -72,10 +75,8 @@ public class MessageController {
         model.addAttribute("conversations",conversations);
 
         //总的未读数量，查询未读消息数量
-        int letterUnreadCount = messageService.lambdaQuery().eq(Message::getStatus, 0).ne(Message::getFromId, 1)
-                .eq(Message::getToId,user.getId()).count();
-        model.addAttribute("letterUnreadCount",letterUnreadCount);
-
+        model.addAttribute("letterUnreadCount",letterUnreadCount(user.getId()));
+        model.addAttribute("noticeUnreadCount",noticeUnreadCount(user.getId()));
         return "/site/letter";
     }
 
@@ -117,6 +118,89 @@ public class MessageController {
         return "/site/letter-detail";
     }
 
+    @PostMapping("/letter/send")
+    @ResponseBody
+    public String sendLetter(String toName, String content) {
+        User target = userService.lambdaQuery().eq(User::getUsername, toName).one();
+        if (ObjectUtil.isEmpty(target)) {
+            return CommunityUtil.getJSONString(1,"目标用户不存在!");
+        }
+        Message message = new Message();
+        message.setFromId(hostHolder.getUser().getId());
+        message.setToId(target.getId());
+        if (message.getFromId() < message.getToId()) {
+            message.setConversationId(message.getFromId() + "_" + message.getToId());
+        }else {
+            message.setConversationId(message.getToId() + "_" + message.getFromId());
+        }
+        message.setContent(content);
+        message.setCreateTime(DateUtil.toLocalDateTime(new Date()));
+        message.setStatus(0);
+        messageService.addMessage(message);
+
+        return CommunityUtil.getJSONString(0,"发送成功!");
+    }
+
+    @GetMapping("/notice/list")
+    public String getNoticeList(Model model) {
+        User user = hostHolder.getUser();
+        //查询评论类通知
+        Map<String, Object> commentNotice = findNoticeType(user.getId(), CommunityConstant.TOPIC_COMMENT);
+        model.addAttribute("commentNotice",commentNotice);
+        //查询点赞类通知
+        Map<String, Object> likeNotice = findNoticeType(user.getId(), CommunityConstant.TOPIC_LIKE);
+        model.addAttribute("likeNotice",likeNotice);
+        //查询关注类通知
+        Map<String, Object> followNotice = findNoticeType(user.getId(), CommunityConstant.TOPIC_FOLLOW);
+        model.addAttribute("followNotice",followNotice);
+
+        //查询未读消息数量
+        model.addAttribute("letterUnreadCount",letterUnreadCount(user.getId()));
+        model.addAttribute("noticeUnreadCount",noticeUnreadCount(user.getId()));
+        return "/site/notice";
+    }
+
+    @GetMapping("/notice/detail/{topic}")
+    public String getNoticeDetail(@PathVariable("topic") String topic, PageInfo pageInfo, Model model) {
+        User user = hostHolder.getUser();
+
+        pageInfo.setLimit(5);
+        pageInfo.setPath("/message/notice/detail/" + topic);
+        pageInfo.setRows(messageService.lambdaQuery().ne(Message::getStatus, 2).eq(Message::getFromId, 1)
+                .eq(Message::getToId, user.getId()).eq(Message::getConversationId, topic).count());
+
+        Page<Message> page = new Page<>(pageInfo.getCurrent(),pageInfo.getLimit());
+
+        LambdaQueryWrapper<Message> wrapper = new LambdaQueryWrapper<>();
+        wrapper.ne(Message::getStatus,2).eq(Message::getFromId,1)
+                .eq(Message::getToId,user.getId()).eq(Message::getConversationId,topic)
+                .orderByDesc(Message::getCreateTime);
+
+        List<Message> noticeList = messageService.page(page, wrapper).getRecords();
+        List<Map<String,Object>> noticeVoList = new ArrayList<>();
+        if (CollUtil.isNotEmpty(noticeList)) {
+            for (Message notice : noticeList) {
+                Map<String,Object> map = new HashMap<>();
+                //通知
+                map.put("notice",notice);
+                //内容
+                toBean(notice,map);
+                //通知作者
+                map.put("fromUser",userService.getById(notice.getFromId()));
+                noticeVoList.add(map);
+            }
+        }
+        model.addAttribute("notices",noticeVoList);
+
+        //设置已读
+        List<Integer> ids = getLetterIds(noticeList);
+        if (CollUtil.isNotEmpty(ids)) {
+            messageService.lambdaUpdate().set(Message::getStatus,1).in(Message::getId,ids).update();
+        }
+
+        return "/site/notice-detail";
+    }
+
     private User getLetterTarget(String conversationId) {
         String[] ids = conversationId.split("_");
         int id0 = Integer.parseInt(ids[0]);
@@ -141,28 +225,39 @@ public class MessageController {
         return ids;
     }
 
-    @PostMapping("/letter/send")
-    @ResponseBody
-    public String sendLetter(String toName, String content) {
-        User target = userService.lambdaQuery().eq(User::getUsername, toName).one();
-        if (ObjectUtil.isEmpty(target)) {
-            return CommunityUtil.getJSONString(1,"目标用户不存在!");
-        }
-        Message message = new Message();
-        message.setFromId(hostHolder.getUser().getId());
-        message.setToId(target.getId());
-        if (message.getFromId() < message.getToId()) {
-            message.setConversationId(message.getFromId() + "_" + message.getToId());
-        }else {
-            message.setConversationId(message.getToId() + "_" + message.getFromId());
-        }
-        message.setContent(content);
-        message.setCreateTime(DateUtil.toLocalDateTime(new Date()));
-        message.setStatus(0);
-        messageService.addMessage(message);
-
-        return CommunityUtil.getJSONString(0,"发送成功!");
+    private int letterUnreadCount(int userId) {
+        return messageService.lambdaQuery().eq(Message::getStatus, 0).ne(Message::getFromId, 1)
+                .eq(Message::getToId,userId).count();
     }
 
+    private int noticeUnreadCount(int userId) {
+        return messageService.lambdaQuery().eq(Message::getStatus, 0).eq(Message::getFromId, 1)
+                .eq(Message::getToId, userId).count();
+    }
+
+    private Map<String,Object> findNoticeType(int userId, String topic) {
+        Message message = messageService.findLatestNotice(userId, topic);
+        Map<String,Object> map = new HashMap<>();
+        if (ObjectUtil.isNotEmpty(message)) {
+            map.put("message",message);
+            toBean(message,map);
+            Integer count = messageService.lambdaQuery().ne(Message::getStatus, 2).eq(Message::getFromId, 1)
+                    .eq(Message::getToId, userId).eq(Message::getConversationId, topic).count();
+            map.put("count",count);
+            Integer unread = messageService.lambdaQuery().eq(Message::getStatus, 0).eq(Message::getFromId, 1)
+                    .eq(Message::getToId, userId).eq(Message::getConversationId, topic).count();
+            map.put("unread",unread);
+        }
+        return map;
+    }
+
+    private void toBean(Message message, Map<String,Object> map) {
+        String content = HtmlUtil.unescape(message.getContent());
+        Map<String,Object> data = JSONUtil.toBean(content,HashMap.class);
+        map.put("user",userService.getById((Integer) data.get("userId")));
+        map.put("entityType",data.get("entityType"));
+        map.put("entityId",data.get("entityId"));
+        map.put("postId",data.get("postId"));
+    }
 }
 

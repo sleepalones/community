@@ -21,4 +21,6 @@ public interface MessageService extends IService<Message> {
     int selectConversationCount(int userId);
 
     int addMessage(Message message);
+
+    Message findLatestNotice(Integer userId, String topic);
 }

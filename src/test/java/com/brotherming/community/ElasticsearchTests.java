@@ -1,21 +1,12 @@
 package com.brotherming.community;
 
+import com.brotherming.community.dao.DiscussPostMapper;
 import com.brotherming.community.entity.DiscussPost;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
-import org.springframework.data.elasticsearch.core.SearchHit;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 @SpringBootTest
 public class ElasticsearchTests {
@@ -23,9 +14,12 @@ public class ElasticsearchTests {
     @Resource
     private ElasticsearchRestTemplate restTemplate;
 
+    @Resource
+    private DiscussPostMapper discussPostMapper;
+
     @Test
     void testDelete() {
-        NativeSearchQuery query = new NativeSearchQueryBuilder()
+        /*NativeSearchQuery query = new NativeSearchQueryBuilder()
                 .withQuery(QueryBuilders.multiMatchQuery("互联网寒冬", "title", "content"))
                 .withSorts(
                         SortBuilders.fieldSort("type").order(SortOrder.DESC),
@@ -45,7 +39,10 @@ public class ElasticsearchTests {
             List<String> contentList = searchHit.getHighlightField("content");
             DiscussPost content = searchHit.getContent();
             System.out.println();
-        }
+        }*/
+        discussPostMapper.selectList(null).stream()
+                .map(DiscussPost::getId).forEach(id -> restTemplate.delete(String.valueOf(id), DiscussPost.class));
+
 
     }
 

@@ -47,16 +47,16 @@ public class ElasticsearchTests {
         }*/
         /*discussPostMapper.selectList(null).stream()
                 .map(DiscussPost::getId).forEach(id -> elasticsearchService.deleteDiscussPost(id));*/
-        elasticsearchService.deleteDiscussPost(290);
+        //elasticsearchService.deleteDiscussPost(290);
     }
 
     @Test
     void testInsert() {
-        /*for (DiscussPost post : discussPostMapper.selectList(null)) {
+        for (DiscussPost post : discussPostMapper.selectList(null)) {
             elasticsearchService.saveDiscussPost(post);
-        }*/
-        DiscussPost post = discussPostMapper.selectById(290);
-        elasticsearchService.saveDiscussPost(post);
+        }
+        /*DiscussPost post = discussPostMapper.selectById(290);
+        elasticsearchService.saveDiscussPost(post);*/
     }
 
     @Test

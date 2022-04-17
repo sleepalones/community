@@ -2,8 +2,10 @@ package com.brotherming.community;
 
 import com.brotherming.community.dao.DiscussPostMapper;
 import com.brotherming.community.entity.DiscussPost;
+import com.brotherming.community.service.ElasticsearchService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 
 import javax.annotation.Resource;
@@ -16,6 +18,9 @@ public class ElasticsearchTests {
 
     @Resource
     private DiscussPostMapper discussPostMapper;
+
+    @Resource
+    private ElasticsearchService elasticsearchService;
 
     @Test
     void testDelete() {
@@ -40,11 +45,29 @@ public class ElasticsearchTests {
             DiscussPost content = searchHit.getContent();
             System.out.println();
         }*/
-        discussPostMapper.selectList(null).stream()
-                .map(DiscussPost::getId).forEach(id -> restTemplate.delete(String.valueOf(id), DiscussPost.class));
-
-
+        /*discussPostMapper.selectList(null).stream()
+                .map(DiscussPost::getId).forEach(id -> elasticsearchService.deleteDiscussPost(id));*/
+        elasticsearchService.deleteDiscussPost(290);
     }
 
+    @Test
+    void testInsert() {
+        /*for (DiscussPost post : discussPostMapper.selectList(null)) {
+            elasticsearchService.saveDiscussPost(post);
+        }*/
+        DiscussPost post = discussPostMapper.selectById(290);
+        elasticsearchService.saveDiscussPost(post);
+    }
+
+    @Test
+    void testQuery() {
+        Page<DiscussPost> discussPosts = elasticsearchService.searchDiscussPost("异常", 0, 10);
+        System.out.println(discussPosts.getTotalElements());
+        System.out.println(discussPosts.getTotalPages());
+        System.out.println(discussPosts.getNumber());
+        for (DiscussPost discussPost : discussPosts) {
+            System.out.println(discussPost);
+        }
+    }
 
 }

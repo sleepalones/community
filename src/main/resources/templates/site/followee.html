@@ -75,12 +75,12 @@
 					</ul>
 					<a th:href="@{|/user/profile/${user.id}|}" class="text-muted position-absolute rt-0">返回个人主页&gt;</a>
 				</div>
-				
+
 				<!-- 关注列表 -->
 				<ul class="list-unstyled">
 					<li class="media pb-3 pt-3 mb-3 border-bottom position-relative" th:each="map:${users}">
 						<a th:href="@{|/user/profile/${map.user.id}|}">
-							<img th:src="${map.user.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" >
+							<img th:src="${map.user.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" style="width:50px;height:50px;">
 						</a>
 						<div class="media-body">
 							<h6 class="mt-0 mb-3">
@@ -99,8 +99,8 @@
 					</li>
 				</ul>
 				<!-- 分页 -->
-				<nav class="mt-5">
-					<ul class="pagination justify-content-center" th:replace="index::pagination">
+				<nav class="mt-5" th:replace="index::pagination">
+					<ul class="pagination justify-content-center">
 						<li class="page-item"><a class="page-link" href="#">首页</a></li>
 						<li class="page-item disabled"><a class="page-link" href="#">上一页</a></li>
 						<li class="page-item active"><a class="page-link" href="#">1</a></li>

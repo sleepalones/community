@@ -6,10 +6,8 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.brotherming.community.entity.Comment;
-import com.brotherming.community.entity.DiscussPost;
-import com.brotherming.community.entity.PageInfo;
-import com.brotherming.community.entity.User;
+import com.brotherming.community.entity.*;
+import com.brotherming.community.event.EventProducer;
 import com.brotherming.community.service.CommentService;
 import com.brotherming.community.service.DiscussPostService;
 import com.brotherming.community.service.LikeService;
@@ -51,6 +49,9 @@ public class DiscussPostController {
     @Resource
     private HostHolder hostHolder;
 
+    @Resource
+    private EventProducer eventProducer;
+
     @PostMapping("/add")
     @ResponseBody
     public String add(String title, String content) {
@@ -64,6 +65,16 @@ public class DiscussPostController {
         post.setContent(content);
         post.setCreateTime(DateUtil.toLocalDateTime(new Date()));
         discussPostService.addDiscussPost(post);
+
+        //触发发帖事件
+        Event event = new Event()
+                .setTopic(CommunityConstant.TOPIC_PUBLISH)
+                .setUserId(user.getId())
+                .setEntityType(CommunityConstant.ENTITY_TYPE_POST)
+                .setEntityId(post.getId());
+
+        eventProducer.fireEvent(event);
+
         return CommunityUtil.getJSONString(0,"发布成功!");
     }
 

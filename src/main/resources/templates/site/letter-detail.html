@@ -118,7 +118,7 @@
 				<ul class="list-unstyled mt-4">
 					<li class="media pb-3 pt-3 mb-2" th:each="map:${letters}">
 						<a th:if="${map.fromUser.id!=loginUser.id}" th:href="@{|/user/profile/${map.fromUser.id}|}">
-							<img th:src="${map.fromUser.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" >
+							<img th:src="${map.fromUser.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" style="width:50px;height:50px;">
 						</a>
 						<div th:style="${map.fromUser.id==loginUser.id?'margin-left:75px;margin-bottom: 0px;':''}" class="toast show d-lg-block" role="alert" aria-live="assertive" aria-atomic="true">
 							<div class="toast-header">
@@ -133,7 +133,7 @@
 							</div>
 						</div>
 						<a th:if="${map.fromUser.id==loginUser.id}" style="margin-left: 20px;" th:href="@{|/user/profile/${map.fromUser.id}|}">
-							<img th:src="${map.fromUser.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" >
+							<img th:src="${map.fromUser.headerUrl}" class="mr-4 rounded-circle user-header" alt="用户头像" style="width:50px;height:50px;">
 						</a>
 					</li>
 				</ul>

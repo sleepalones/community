@@ -55,7 +55,7 @@ public class DiscussPost implements Serializable {
     private Integer status;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
-    @Field(type = FieldType.Date, name = "create_time", format = DateFormat.date_optional_time)
+    @Field(type = FieldType.Date, format = DateFormat.date_optional_time)
     private LocalDateTime createTime;
 
     @Field(type = FieldType.Integer)

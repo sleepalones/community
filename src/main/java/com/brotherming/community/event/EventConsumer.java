@@ -71,6 +71,12 @@ public class EventConsumer implements CommunityConstant {
                 .ifPresent(event -> elasticsearchService.saveDiscussPost(discussPostService.getById(event.getEntityId())));
     }
 
+    @KafkaListener(topics = {TOPIC_DELETE})
+    public void handleDeleteMessage(ConsumerRecord<String,Object> record) {
+        Optional.ofNullable(contentJudge(record))
+                .ifPresent(event -> elasticsearchService.deleteDiscussPost(event.getEntityId()));
+    }
+
     private Event contentJudge(ConsumerRecord<String,Object> record) {
         if (record == null || record.value() == null) {
             logger.error("消息的内容为空!");

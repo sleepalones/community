@@ -163,5 +163,53 @@ public class DiscussPostController {
         model.addAttribute("comments",commentVoList);
         return "/site/discuss-detail";
     }
+
+    //置顶
+    @PostMapping("/top")
+    @ResponseBody
+    public String setTop(int id) {
+        discussPostService.lambdaUpdate().set(DiscussPost::getType, 1).eq(DiscussPost::getId, id).update();
+        //触发发帖事件
+        Event event = new Event()
+                .setTopic(CommunityConstant.TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(CommunityConstant.ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0,null);
+    }
+
+    //加精
+    @PostMapping("/wonderful")
+    @ResponseBody
+    public String setWonderful(int id) {
+        discussPostService.lambdaUpdate().set(DiscussPost::getStatus, 1).eq(DiscussPost::getId, id).update();
+        //触发发帖事件
+        Event event = new Event()
+                .setTopic(CommunityConstant.TOPIC_PUBLISH)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(CommunityConstant.ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0,null);
+    }
+
+    //加精
+    @PostMapping("/delete")
+    @ResponseBody
+    public String setDelete(int id) {
+        discussPostService.lambdaUpdate().set(DiscussPost::getStatus, 2).eq(DiscussPost::getId, id).update();
+        //触发发帖事件
+        Event event = new Event()
+                .setTopic(CommunityConstant.TOPIC_DELETE)
+                .setUserId(hostHolder.getUser().getId())
+                .setEntityType(CommunityConstant.ENTITY_TYPE_POST)
+                .setEntityId(id);
+        eventProducer.fireEvent(event);
+
+        return CommunityUtil.getJSONString(0,null);
+    }
 }
 

@@ -15,15 +15,13 @@ import com.brotherming.community.util.MailClient;
 import com.brotherming.community.util.RedisKeyUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -238,5 +236,22 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
             user = initCache(userId);
         }
         return user;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities(int userId) {
+        User user = userMapper.selectById(userId);
+        List<GrantedAuthority> list = new ArrayList<>();
+        list.add(() -> {
+            switch (user.getType()) {
+                case 1:
+                    return CommunityConstant.AUTHORITY_ADMIN;
+                case 2:
+                    return CommunityConstant.AUTHORITY_MODERATOR;
+                default:
+                    return CommunityConstant.AUTHORITY_USER;
+            }
+        });
+        return list;
     }
 }

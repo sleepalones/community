@@ -2,7 +2,9 @@ package com.brotherming.community.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.brotherming.community.entity.User;
+import org.springframework.security.core.GrantedAuthority;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -35,5 +37,7 @@ public interface UserService extends IService<User> {
     void clearCache(int userId);
 
     User findUserById(int userId);
+
+    Collection<? extends GrantedAuthority> getAuthorities(int userId);
 
 }

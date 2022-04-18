@@ -5,6 +5,13 @@ $(function(){
 function publish() {
 	$("#publishModal").modal("hide");
 
+	//发送 ajax 请求之前，将 CSRF 令牌设置到请求的消息头中
+	/*const token = $("meta[name='_csrf']").attr("content");
+	const header = $("meta[name='_csrf_header']").attr("content");
+	$(document).ajaxSend(function (e, xhr, options) {
+		xhr.setRequestHeader(header,token);
+	})*/
+
 	const title = $("#recipient-name").val();
 	const content = $("#message-text").val();
 

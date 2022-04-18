@@ -65,4 +65,9 @@ public class HomeController {
         return "/error/500";
     }
 
+    @GetMapping("/denied")
+    public String getDeniedPage() {
+        return "/error/404";
+    }
+
 }

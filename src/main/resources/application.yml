@@ -40,6 +40,35 @@ spring:
   elasticsearch:
     rest:
       uris: http://127.0.0.1:9200
+  quartz:
+    job-store-type: jdbc
+    scheduler-name: communityScheduler
+    properties:
+      org:
+        quartz:
+          scheduler:
+            instanceId: AUTO
+          jobStore:
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            isClustered: true
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 5
+#  task:
+#    #普通线程池配置
+#    execution:
+#      pool:
+#        #核心线程数
+#        core-size: 5
+#        #最大线程数
+#        max-size: 10
+#        #阻塞队列容量
+#        queue-capacity: 100
+#    #定时任务的线程池配置
+#    scheduling:
+#      pool:
+#        size: 5
 
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml

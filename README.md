@@ -225,4 +225,13 @@
     - 日活跃用户，需通过用户ID排重统计数据。
     - 访问过一次，则认为其活跃
     - Bitmap，性能好、且可以统计精确的结果
+- 任务执行和调度
+  - JDK线程池
+    - ExecutorService
+    - ScheduledExecutorService
+  - Spring线程池
+    - ThreadPoolTaskExecutor
+    - ThreadPollTaskScheduler
+  - 分布式定时任务
+    - Spring Quartz
 ## 项目发布与总结

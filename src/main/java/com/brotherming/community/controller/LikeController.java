@@ -8,6 +8,8 @@ import com.brotherming.community.service.LikeService;
 import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
+import com.brotherming.community.util.RedisKeyUtil;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -26,6 +28,9 @@ public class LikeController {
 
     @Resource
     private EventProducer eventProducer;
+
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
 
     @LoginRequired
     @PostMapping("/like")
@@ -52,6 +57,12 @@ public class LikeController {
                     .setEntityUserId(entityUserId)
                     .setData("postId",postId);
             eventProducer.fireEvent(event);
+        }
+
+        if (entityType == CommunityConstant.ENTITY_TYPE_POST) {
+            //计算帖子分数
+            String redisKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(redisKey,postId);
         }
 
         return CommunityUtil.getJSONString(0,null,map);

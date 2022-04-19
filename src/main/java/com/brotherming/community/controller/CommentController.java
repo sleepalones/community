@@ -10,6 +10,8 @@ import com.brotherming.community.service.CommentService;
 import com.brotherming.community.service.DiscussPostService;
 import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.HostHolder;
+import com.brotherming.community.util.RedisKeyUtil;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,6 +43,9 @@ public class CommentController {
 
     @Resource
     private DiscussPostService discussPostService;
+
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
 
     @PostMapping("/add/{discussPostId}")
     private String addComment(@PathVariable("discussPostId") int discussPostId, Comment comment) {
@@ -75,6 +80,10 @@ public class CommentController {
                     .setEntityId(discussPostId);
 
             eventProducer.fireEvent(event);
+
+            //计算帖子分数
+            String redisKey = RedisKeyUtil.getPostScoreKey();
+            redisTemplate.opsForSet().add(redisKey,discussPostId);
         }
 
         return "redirect:/discussPost/detail/" + discussPostId;

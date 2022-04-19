@@ -15,6 +15,8 @@ import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
+import com.brotherming.community.util.RedisKeyUtil;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -52,6 +54,9 @@ public class DiscussPostController {
     @Resource
     private EventProducer eventProducer;
 
+    @Resource
+    private RedisTemplate<String,Object> redisTemplate;
+
     @PostMapping("/add")
     @ResponseBody
     public String add(String title, String content) {
@@ -74,6 +79,10 @@ public class DiscussPostController {
                 .setEntityId(post.getId());
 
         eventProducer.fireEvent(event);
+
+        //计算帖子分数
+        String redisKey = RedisKeyUtil.getPostScoreKey();
+        redisTemplate.opsForSet().add(redisKey,post.getId());
 
         return CommunityUtil.getJSONString(0,"发布成功!");
     }
@@ -193,10 +202,14 @@ public class DiscussPostController {
                 .setEntityId(id);
         eventProducer.fireEvent(event);
 
+        //计算帖子分数
+        String redisKey = RedisKeyUtil.getPostScoreKey();
+        redisTemplate.opsForSet().add(redisKey,id);
+
         return CommunityUtil.getJSONString(0,null);
     }
 
-    //加精
+    //删除
     @PostMapping("/delete")
     @ResponseBody
     public String setDelete(int id) {

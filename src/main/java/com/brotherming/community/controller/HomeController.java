@@ -13,6 +13,7 @@ import com.brotherming.community.util.CommunityConstant;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -36,12 +37,17 @@ public class HomeController {
     private LikeService likeService;
 
     @GetMapping("/index")
-    public String getIndexPage(Model model, PageInfo pageInfo){
+    public String getIndexPage(Model model, PageInfo pageInfo,
+                               @RequestParam(name = "orderMode", defaultValue = "0") int orderMode){
         Page<DiscussPost> page = new Page<>(pageInfo.getCurrent(),pageInfo.getLimit());
         LambdaQueryWrapper<DiscussPost> wrapper = new LambdaQueryWrapper<>();
         // 查询没有被拉黑的帖子
         wrapper.ne(DiscussPost::getStatus,2);
-        wrapper.orderByDesc(DiscussPost::getType).orderByDesc(DiscussPost::getCreateTime);
+        wrapper.orderByDesc(DiscussPost::getType);
+        if (orderMode == 1) {
+            wrapper.orderByDesc(DiscussPost::getScore);
+        }
+        wrapper.orderByDesc(DiscussPost::getCreateTime);
         Page<DiscussPost> discussPostPage = discussPostService.page(page,wrapper);
         List<Map<String,Object>> discussPosts = new ArrayList<>();
         if (CollUtil.isNotEmpty(discussPostPage.getRecords())) {
@@ -55,7 +61,8 @@ public class HomeController {
             });
         }
         model.addAttribute("discussPosts",discussPosts);
-        pageInfo.setPath("/index");
+        model.addAttribute("orderMode",orderMode);
+        pageInfo.setPath("/index?orderMode=" + orderMode);
         pageInfo.setRows((int) page.getTotal());
         return "/index";
     }

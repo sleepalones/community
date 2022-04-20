@@ -14,6 +14,8 @@ import com.brotherming.community.service.UserService;
 import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
+import com.qiniu.util.Auth;
+import com.qiniu.util.StringMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,12 +66,50 @@ public class UserController {
     @Resource
     private FollowService followService;
 
+    @Value("${qiniu.key.access}")
+    private String accessKey;
+
+    @Value("${qiniu.key.secret}")
+    private String secretKey;
+
+    @Value("${qiniu.bucket.header.name}")
+    private String headerBucketName;
+
+    @Value("${qiniu.bucket.header.url}")
+    private String headerBucketUrl;
+
     @LoginRequired
     @GetMapping("/setting")
-    public String getSettingPage() {
+    public String getSettingPage(Model model) {
+        //上传文件名称
+        String fileName = CommunityUtil.generateUUID();
+        //设置响应信息
+        StringMap policy = new StringMap();
+        policy.put("returnBody",CommunityUtil.getJSONString(0,null));
+        //生成上传凭证
+        Auth auth = Auth.create(accessKey,secretKey);
+        String uploadToken = auth.uploadToken(headerBucketName, fileName, 3600, policy);
+        model.addAttribute("uploadToken",uploadToken);
+        model.addAttribute("fileName",fileName);
         return "/site/setting";
     }
 
+    //更新头像路径
+    @PostMapping("/header/url")
+    @ResponseBody
+    public String updateHeaderUrl(String fileName) {
+        if (StrUtil.isBlank(fileName)) {
+            return CommunityUtil.getJSONString(1,"文件名不能为空!");
+        }
+        String url = headerBucketUrl + "/" + fileName;
+        User user = hostHolder.getUser();
+        user.setHeaderUrl(url);
+        userService.updateById(user);
+        userService.clearCache(user.getId());
+        return CommunityUtil.getJSONString(0,null);
+    }
+
+    //废弃
     @LoginRequired
     @PostMapping("/upload")
     public String uploadHeader(MultipartFile headerImage, Model model) {
@@ -103,6 +143,7 @@ public class UserController {
         return "redirect:/index";
     }
 
+    //废弃
     @GetMapping("/header/{fileName}")
     public void getHeader(@PathVariable("fileName") String fileName, HttpServletResponse response) {
         //服务器存放路径
@@ -139,7 +180,7 @@ public class UserController {
     public String getProfilePage(@PathVariable("userId") int userId, Model model) {
         User user = userService.findUserById(userId);
         if (ObjectUtil.isEmpty(user)) {
-            throw new RuntimeException("该用户不存咋!");
+            throw new RuntimeException("该用户不存在!");
         }
         //用户
         model.addAttribute("user",user);

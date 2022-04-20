@@ -87,3 +87,13 @@ community:
   path:
     domain: http://localhost:8080
     upload: d:/dev-data/upload
+
+# 七牛云配置
+qiniu:
+  key:
+    access: AeFJwRdCZOTJKkI1srVRLb9nnCiidrKMVkxMH7OW
+    secret: n3VurJrss3yaB1uFtdYXdHrRVuPIk_e_SKJ1lYCr
+  bucket:
+    header:
+      name: bamboo-header
+      url: http://ral8ycoyz.hn-bkt.clouddn.com

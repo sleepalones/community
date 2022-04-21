@@ -6,11 +6,14 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IoUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.brotherming.community.annotation.LoginRequired;
+import com.brotherming.community.entity.Comment;
+import com.brotherming.community.entity.DiscussPost;
+import com.brotherming.community.entity.PageInfo;
 import com.brotherming.community.entity.User;
-import com.brotherming.community.service.FollowService;
-import com.brotherming.community.service.LikeService;
-import com.brotherming.community.service.UserService;
+import com.brotherming.community.service.*;
 import com.brotherming.community.util.CommunityConstant;
 import com.brotherming.community.util.CommunityUtil;
 import com.brotherming.community.util.HostHolder;
@@ -29,7 +32,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 
 /**
  * <p>
@@ -65,6 +68,12 @@ public class UserController {
 
     @Resource
     private FollowService followService;
+
+    @Resource
+    private DiscussPostService discussPostService;
+
+    @Resource
+    private CommentService commentService;
 
     @Value("${qiniu.key.access}")
     private String accessKey;
@@ -203,6 +212,51 @@ public class UserController {
         }
         model.addAttribute("hasFollowed",hasFollowed);
         return "/site/profile";
+    }
+
+    @GetMapping("/mypost/{userId}")
+    public String getMyPost(Model model, PageInfo pageInfo,@PathVariable("userId") int userId) {
+        Page<DiscussPost> page = new Page<>(pageInfo.getCurrent(),pageInfo.getLimit());
+        LambdaQueryWrapper<DiscussPost> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(DiscussPost::getUserId,userId).ne(DiscussPost::getStatus,2).orderByDesc(DiscussPost::getCreateTime);
+        Page<DiscussPost> discussPostPage = discussPostService.page(page, wrapper);
+        List<Map<String,Object>> list = new ArrayList<>();
+        Optional.ofNullable(discussPostPage.getRecords()).ifPresent(discussPostList -> {
+            for (DiscussPost post : discussPostList) {
+                Map<String,Object> map = new HashMap<>();
+                map.put("post",post);
+                long likeCount = likeService.findEntityLikeCount(CommunityConstant.ENTITY_TYPE_POST,post.getId());
+                map.put("likeCount",likeCount);
+                list.add(map);
+            }
+        });
+        long total = page.getTotal();
+        pageInfo.setPath("/user/mypost/" + userId);
+        pageInfo.setRows((int) total);
+        model.addAttribute("postList",list);
+        model.addAttribute("total",total);
+        model.addAttribute("user",userService.getById(userId));
+        return "/site/my-post";
+    }
+
+    @GetMapping("/myreply/{userId}")
+    public String getMyReply(Model model, PageInfo pageInfo, @PathVariable("userId") int userId) {
+        int count = commentService.findCommentCountByUserId(userId);
+        pageInfo.setPath("/user/myreply/" + userId);
+        pageInfo.setRows(count);
+        List<Comment> commentList = commentService.findNewCommentByUserId(pageInfo.getOffset(),pageInfo.getLimit(),userId);
+        List<Map<String,Object>> comments = new ArrayList<>();
+        commentList.forEach(comment -> {
+            Map<String,Object> map = new HashMap<>();
+            map.put("comment",comment);
+            DiscussPost post = discussPostService.getById(comment.getEntityId());
+            map.put("post",post);
+            comments.add(map);
+        });
+        model.addAttribute("comments",comments);
+        model.addAttribute("count",count);
+        model.addAttribute("user",userService.getById(userId));
+        return "/site/my-reply";
     }
 }
 

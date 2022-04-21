@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * <p>
@@ -54,5 +55,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             discussPostService.lambdaUpdate().set(DiscussPost::getCommentCount,count)
                     .eq(DiscussPost::getId,comment.getEntityId()).update();
         }
+    }
+
+    @Override
+    public int findCommentCountByUserId(int userId) {
+        return commentMapper.selectCommentCountByUserId(userId);
+    }
+
+    @Override
+    public List<Comment> findNewCommentByUserId(int offset, int limit, int userId) {
+        return commentMapper.selectNewCommentByUserId(offset,limit,userId);
     }
 }

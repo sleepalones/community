@@ -1,8 +1,6 @@
 package com.brotherming.community.controller;
 
 import cn.hutool.core.collection.CollUtil;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.brotherming.community.entity.DiscussPost;
 import com.brotherming.community.entity.PageInfo;
 import com.brotherming.community.entity.User;
@@ -39,19 +37,10 @@ public class HomeController {
     @GetMapping("/index")
     public String getIndexPage(Model model, PageInfo pageInfo,
                                @RequestParam(name = "orderMode", defaultValue = "0") int orderMode){
-        Page<DiscussPost> page = new Page<>(pageInfo.getCurrent(),pageInfo.getLimit());
-        LambdaQueryWrapper<DiscussPost> wrapper = new LambdaQueryWrapper<>();
-        // 查询没有被拉黑的帖子
-        wrapper.ne(DiscussPost::getStatus,2);
-        wrapper.orderByDesc(DiscussPost::getType);
-        if (orderMode == 1) {
-            wrapper.orderByDesc(DiscussPost::getScore);
-        }
-        wrapper.orderByDesc(DiscussPost::getCreateTime);
-        Page<DiscussPost> discussPostPage = discussPostService.page(page,wrapper);
+        List<DiscussPost> discussPostPage = discussPostService.findDiscussPostPage(pageInfo,orderMode);
         List<Map<String,Object>> discussPosts = new ArrayList<>();
-        if (CollUtil.isNotEmpty(discussPostPage.getRecords())) {
-            discussPostPage.getRecords().forEach(dis -> {
+        if (CollUtil.isNotEmpty(discussPostPage)) {
+            discussPostPage.forEach(dis -> {
                 Map<String,Object> map = new HashMap<>();
                 map.put("post",dis);
                 User user = userService.findUserById(Integer.parseInt(dis.getUserId()));
@@ -63,7 +52,8 @@ public class HomeController {
         model.addAttribute("discussPosts",discussPosts);
         model.addAttribute("orderMode",orderMode);
         pageInfo.setPath("/index?orderMode=" + orderMode);
-        pageInfo.setRows((int) page.getTotal());
+        int total = discussPostService.findDiscussPostTotal(orderMode);
+        pageInfo.setRows(total);
         return "/index";
     }
 

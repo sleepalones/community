@@ -97,3 +97,9 @@ qiniu:
     header:
       name: bamboo-header
       url: http://ral8ycoyz.hn-bkt.clouddn.com
+
+# caffeine
+caffeine:
+  posts:
+    max-size: 15
+    expire-seconds: 180

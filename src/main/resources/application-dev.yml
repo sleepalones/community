@@ -1,16 +1,16 @@
 server:
   port: 8080
   servlet:
-    context-path: /community
+    context-path: /
 
 spring:
   thymeleaf:
     cache: false
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/community?characterEncoding=utf-8&useSSL=false&serverTimezone=Hongkong
+    url: jdbc:mysql://175.178.185.167:3306/community?allowPublicKeyRetrieval=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Hongkong
     username: root
-    password: rootwym
+    password: brotherMing@7572
     type: com.zaxxer.hikari.HikariDataSource
     hikari:
       maximum-pool-size: 15
@@ -29,17 +29,18 @@ spring:
             enable: true
   redis:
     database: 11
-    host: 127.0.0.1
+    host: 175.178.185.167
     port: 6379
+    password: brothermingredis
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: 175.178.185.167:9092
     consumer:
       group-id: community-consumer-group
       enable-auto-commit: true
       auto-commit-interval: 3000
   elasticsearch:
     rest:
-      uris: http://127.0.0.1:9200
+      uris: http://175.178.185.167:9200
   quartz:
     job-store-type: jdbc
     scheduler-name: communityScheduler

@@ -47,7 +47,8 @@ public class ElasticsearchTests {
         }*/
         /*discussPostMapper.selectList(null).stream()
                 .map(DiscussPost::getId).forEach(id -> elasticsearchService.deleteDiscussPost(id));*/
-        //elasticsearchService.deleteDiscussPost(290);
+        elasticsearchService.deleteDiscussPost(283);
+        elasticsearchService.deleteDiscussPost(284);
     }
 
     @Test

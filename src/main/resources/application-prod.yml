@@ -92,8 +92,8 @@ community:
 # 七牛云配置
 qiniu:
   key:
-    access: AeFJwRdCZOTJKkI1srVRLb9nnCiidrKMVkxMH7OW
-    secret: n3VurJrss3yaB1uFtdYXdHrRVuPIk_e_SKJ1lYCr
+    access:
+    secret:
   bucket:
     header:
       name: bamboo-header
